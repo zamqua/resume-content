@@ -1,0 +1,92 @@
+baseURL = 'https://zamqua.com'
+languageCode = 'en-us'
+title = 'Mohammed Azam — Resume'
+theme = 'PaperMod'
+
+# Pagination
+paginate = 10
+
+# Enable syntax highlighting
+pygmentsUseClasses = true
+
+[params]
+  # Home info block — must be an object, not just true
+  # [params.homeInfoParams]
+  #   Title = "Hi, I'm Mohammed Azam 👋"
+  #   Content = "Software Engineer based in Texas. Welcome to my resume."
+  # homeInfoParams = true
+  
+  # Author info
+  author = "Mohammed Azam"
+  description = "Software Architect & Engineer | Airline/GDS Systems | Cloud-Native Distributed Platforms | Modernization | Performance & Reliability"
+
+  # Show reading time on posts
+  ShowReadingTime = false
+  
+  # Show share buttons
+  ShowShareButtons = false
+
+  # Show post on home page
+  ShowPostNavLinks = false
+
+  # Enable search
+  env = "production"
+
+  [params.homeInfoParams]
+    Title = ""
+    Content = ""
+    AlignSocialIconsTo = "left"
+
+[[params.socialIcons]]
+  name = "github"
+  url = "https://github.com/zamqua"
+
+[[params.socialIcons]]
+  name = "linkedin"
+  url = "https://linkedin.com/in/mazam"
+
+[[params.socialIcons]]
+  name = "email"
+  url = "mailto:mohammed.azam@gmail.com"
+
+[menu]
+  [[menu.main]]
+    name = "Experience"
+    url = "/experience/"
+    weight = 1
+  [[menu.main]]
+    name = "Skills"
+    url = "/skills/"
+    weight = 2
+  [[menu.main]]
+    name = "Education"
+    url = "/education/"
+    weight = 3
+  [[menu.main]]
+    name = "Projects"
+    url = "/projects/"
+    weight = 4
+  [[menu.main]]
+    name = "Blog"
+    url = "/posts/"
+    weight = 5
+
+[deployment]
+  [[deployment.targets]]
+    name = "gcs"
+    URL  = "gs://zamqua.com"
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.html$"
+    cacheControl = "max-age=60, no-transform, public"
+    gzip = true
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.(js|css|svg|ttf|woff|woff2)$"
+    cacheControl = "max-age=31536000, no-transform, public"
+    gzip = true
+
+  [[deployment.matchers]]
+    pattern = "^.+\\.(png|jpg|gif|webp|ico)$"
+    cacheControl = "max-age=2592000, no-transform, public"
+    gzip = false
