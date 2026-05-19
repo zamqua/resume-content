@@ -15,9 +15,9 @@ A Load Balancer in GCP is a managed service that distributes incoming traffic ac
 
 1. **Static IP Address** — The entry point for all traffic (external or internal VPC).
 2. **Forwarding Rule** — Binds the static IP, port, and protocol to the proxy. It directs incoming traffic to the correct proxy.
-3. **Proxy (Reverse Proxy) — The core of the LB. It receives traffic from the forwarding rule and coordinates SSL/TLS and URL mapping.
+3. **Proxy (Reverse Proxy)** — The core of the LB. It receives traffic from the forwarding rule and coordinates SSL/TLS and URL mapping.
 4. **SSL/TLS** — Decrypts incoming HTTPS traffic so it can be processed and forwarded to the backend.
-5. **URL Mapper — A configuration that routes traffic to the correct backend based on the hostname and URL path.
+5. **URL Mapper** — A configuration that routes traffic to the correct backend based on the hostname and URL path.
 6. **Backend Services** — The actual destinations for traffic, which can be VMs (in Managed Instance Groups), containerized apps (Cloud Run or GKE), or Backend Buckets (pointing to Cloud Storage).
 7. **Health Checks** — The LB periodically pings each backend instance to determine if it is healthy. Unhealthy instances are removed from the traffic pool.
 8. **Load Balancing Algorithm** — Determines which specific healthy backend instance receives each request (e.g. round-robin).
