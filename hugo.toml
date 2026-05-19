@@ -90,3 +90,10 @@ pygmentsUseClasses = true
     pattern = "^.+\\.(png|jpg|gif|webp|ico)$"
     cacheControl = "max-age=2592000, no-transform, public"
     gzip = false
+
+[module]
+  [[module.imports]]
+    path = "github.com/zamqua/resume-content"
+    [[module.imports.mounts]]
+      source = "content"
+      target = "content"
