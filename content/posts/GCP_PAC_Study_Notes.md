@@ -1,6 +1,6 @@
 ---
 title: "GCP Professional Architect Certification — Study Notes"
-author: " "
+author: "M. Azam"
 date: 2026-05-19
 draft: false
 tags: ["gcp", "certification", "PAC", "study-notes"]
