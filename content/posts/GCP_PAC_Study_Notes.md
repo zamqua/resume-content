@@ -9,7 +9,9 @@ description: "Random notes on GCP PAC certifcation preperation"
 showToc: true
 ---
 
-# GCP Load Balancers
+# GCP Concepts for PAC prepration
+
+## GCP Load Balancers
 
 A Load Balancer in GCP is a managed service that distributes incoming traffic across multiple backend services to ensure availability and scalability. It is composed of several components that work together:
 
@@ -47,3 +49,90 @@ GCP offers Load Balancers at two layers of the network stack:
 
 - Use Application LB when you need content-based routing, security filtering, or HTTP/HTTPS with rich control
 - Use Network LB when you are dealing with TCP/UDP protocols that require fast, simple routing
+
+## GCP Data Storage Summary
+
+### Structured Data (Relational)
+
+- **Cloud SQL** — Managed MySQL/PostgreSQL, regional, suitable for standard business transactional workloads
+
+- **Cloud Spanner** — Global, multi-region, low latency relational database, but significantly more expensive. Suited for large global businesses
+
+### Semi-Structured / Document
+
+- **Firestore** — Document-based (JSON-like) storage with nesting support. Ideal for web/mobile apps needing real-time updates (e.g. order status). Not suited for high-frequency or large-scale data
+
+### Wide-Column / High Volume
+
+- **BigTable** — Suited for enormous volumes of data with high write throughput. Ideal for IoT, sensor data, and time-series data where transactional integrity is not a priority
+
+### In-Memory Cache
+
+- **Memorystore (Redis)** — Caches frequently accessed, rarely changing data to reduce database load. Uses TTL and event-driven invalidation to manage stale data
+
+### Object Storage
+
+- **Cloud Storage** — Stores BLOBs (images, video, files) across four classes: Standard, Nearline, Coldline, and Archive — balancing storage cost vs retrieval frequency
+
+### Analytical / Data Warehouse
+
+- **BigQuery** — Suited for large-scale analytical queries (OLAP), not real-time transactions. Ideal for trend analysis across large historical datasets
+
+
+## Kubernetes & GKE Summary
+
+### Containers
+
+- Lightweight isolated processes sharing the host OS
+- Unlike VMs, containers don't need a full OS — making them fast and lightweight
+- Eliminate dependency conflicts between test and production environments
+
+### Pods
+
+- A wrapper around one or more containers
+- Tightly coupled containers share the same pod
+- Each pod has a dynamic, ephemeral IP address
+
+### Services
+
+- Groups pods together under a stable static IP address
+- Pods register their IP with the Service when they start
+- Acts as a stable endpoint so the Load Balancer can route traffic reliably
+
+### Kubernetes Architecture
+
+![alt text](image.png)
+
+- Control Plane manages the cluster:
+  - API Server — gateway between users/tools (gcloud, console) and the cluster
+  - Scheduler — places pods on nodes based on available CPU/memory resources
+  - Controller Manager — the "cop" that ensures the desired state is maintained (e.g. restarting crashed pods)
+  - etcd — stores the entire state of the cluster
+
+- Worker Nodes run the workloads:
+  - kubelet — agent communicating with the control plane
+  - kube-proxy — manages networking and routing between pods across nodes
+  - Container runtime — actually runs the containers (e.g. containerd)
+
+NOTE: Here's a quick reference link from the official GCP docs for the architecture: GKE Cluster Architecture
+
+### GKE (Google Kubernetes Engine)
+
+- Google's managed Kubernetes service
+- Google manages the control plane in both modes
+- Standard mode — user manages nodes (manual scaling via kubectl)
+- Autopilot mode — Google manages nodes, inferring VM configuration from pod resource requirements
+
+**Summary of the Kubernetes vs GKE distinction**:
+
+**Kubernetes** is the open-source container orchestration platform. It can run anywhere — on your own servers, on AWS, Azure, or GCP. When you run vanilla Kubernetes, you are responsible for everything: setting up the control plane, managing nodes, networking, upgrades, and security.
+
+**GKE** is Google's managed Kubernetes service. It uses Kubernetes under the hood but removes much of the operational burden. Google manages the control plane — running the API server, scheduler, controller manager, and etcd — in both Standard and Autopilot modes. [Google Cloud](https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-architecture)
+
+The two modes differ in how much Google takes over beyond the control plane:
+
+In **Standard mode**, Google manages the control plane and system components, but users manage the nodes. [Medium](https://medium.com/@chatterjee.mithun/autopilot-is-now-gkes-default-mode-of-operation-here-s-what-that-means-for-you-514a02357713)
+
+In **Autopilot mode**, GKE provisions and manages the corresponding infrastructure to run your workloads based on what you specify in your workload definitions. [Google](https://docs.cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview)
+
+The key billing distinction is that in Standard mode you pay for nodes whether you use them or not, while in Autopilot you pay only for the CPU, memory, and storage your pods actually request.
