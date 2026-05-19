@@ -2,7 +2,7 @@
 title: "GCP Professional Architect Certification — Study Notes"
 author: " "
 date: 2026-05-19
-draft: true
+draft: false
 tags: ["gcp", "certification", "PAC", "study-notes"]
 categories: ["Tutorial"]
 description: "Random notes on GCP PAC certifcation preperation"

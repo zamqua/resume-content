@@ -1,0 +1,16 @@
+name: Trigger site updates
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger my-resume-cf rebuild
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: zamqua/my-resume-cf
+          event-type: content-updated
