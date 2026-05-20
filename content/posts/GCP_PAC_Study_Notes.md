@@ -136,3 +136,53 @@ In **Standard mode**, Google manages the control plane and system components, bu
 In **Autopilot mode**, GKE provisions and manages the corresponding infrastructure to run your workloads based on what you specify in your workload definitions. [Google](https://docs.cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview)
 
 The key billing distinction is that in Standard mode you pay for nodes whether you use them or not, while in Autopilot you pay only for the CPU, memory, and storage your pods actually request.
+
+## GCP IAM Summary
+
+### Organization Hierarchy
+
+- **Organization** — root node, establishes identity boundary for the org
+- **Folders** — logical grouping of projects (by department, environment, etc.)
+- **Projects** — the only entity that can own GCP resources; linked to a billing account
+- **Resources** — compute, storage, etc.; live inside projects
+
+### Principals (Identities)
+
+- **Users** — human identities, either within org or external
+- **Groups** — collection of users sharing the same permissions
+- **Service accounts** — non-human identities used by services and applications
+
+### Roles
+
+- **Basic/Primitive** — broad roles: owner, editor, viewer
+- **Predefined** — fine-grained roles created and maintained by Google per service
+- **Custom** — organization-defined roles combining specific permissions
+
+### Policies
+
+- A policy binds a principal + role + resource
+- Policies are additive — principals accumulate permissions across all levels
+- Policies are inherited down the hierarchy — org → folder → project → resource
+- Deny policies always take precedence over allow policies
+
+### Service Accounts
+
+- Can act as a principal — when a service uses it to access resources
+- Can act as a resource — when a human is granted permission to impersonate it
+- Default service accounts are broad — Google recommends custom service accounts following least privilege
+- Service account keys — downloadable credentials, discouraged due to security risks
+
+### Workload Identity Federation
+
+- Allows external services (like GitHub) to authenticate to GCP without service account keys
+- External identity provider (e.g. GitHub) issues a signed JWT token
+- GCP validates the token and allows impersonation of a designated service account
+- Much more secure than storing service account keys in external systems
+
+### Super User / Organization Admin
+
+- In GCP the "super user" concept is represented by the Organization Admin role
+- The org admin can grant and manage IAM roles but has no direct access to resources — enforcing least privilege even at the highest level
+- The first org admin is bootstrapped from the Google Workspace or Cloud Identity account used to create the organization
+- Risks: a compromised org admin can indirectly cause damage by granting elevated privileges to malicious principals
+- Safeguards: multiple org admins, audit logging, and narrowly scoped admin roles
