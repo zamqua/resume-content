@@ -186,3 +186,82 @@ The key billing distinction is that in Standard mode you pay for nodes whether y
 - The first org admin is bootstrapped from the Google Workspace or Cloud Identity account used to create the organization
 - Risks: a compromised org admin can indirectly cause damage by granting elevated privileges to malicious principals
 - Safeguards: multiple org admins, audit logging, and narrowly scoped admin roles
+
+## GCP Data Security
+
+![alt text](image-1.png)
+
+### Encryption at Rest
+
+- **Google managed (default)** — GCP automatically encrypts data with a DEK
+- **CMEK (Customer Managed Encryption Key)** — user creates KEK in Cloud KMS; GCP wraps DEK with KEK
+- **CSEK (Customer Supplied Encryption Key)** — user passes key bytes in request header; Google never stores or manages the key
+- **Cloud HSM** — keys stored in tamper-resistant hardware devices; even Google cannot access them; required for strict government and industry compliance (FIPS 140-2)
+
+### Key Management
+
+- **DEK (Data Encryption Key)** — encrypts actual data
+- **KEK (Key Encryption Key)** — wraps and protects the DEK
+- **Cloud KMS** — Google's managed key management service for KEKs
+- **Cloud HSM** — hardware backed key storage for maximum security and compliance
+
+### Encryption in Transit
+
+- User to GCP (internet) — protected by TLS:
+  - Asymmetric encryption (public/private key) used during handshake to verify identity via certificates and negotiate a shared secret
+  - Symmetric encryption (shared session key) used for actual data exchange — faster and efficient
+  - Certificates issued by trusted Certificate Authorities (CAs)
+
+- Within GCP internal network — Google encrypts all data in transit between data centers and services automatically by default
+
+### Secret Manager
+
+- Stores secrets (passwords, tokens, API keys, certificates) in a centrally managed, secure service
+- Protected by IAM policies — only authorized principals can access secrets
+- Supports versioning — enables secret rotation, supports multiple API versions, and maintains audit trails
+- Recommended pattern: application uses its service account to retrieve secrets from Secret Manager at runtime — avoids storing credentials in environment variables or config files
+
+### Sensitive Data Protection (Cloud DLP)
+
+- Automatically inspects data to detect sensitive fields (credit card numbers, SSNs, EHR data)
+- **De-identification techniques**:
+  - **Masking** — replaces sensitive value with ****
+  - **Tokenization** — replaces sensitive value with a consistent token, preserving correlation across records
+  - **Generalization** — replaces exact value with a range (e.g. age 67 → 60-70)
+  - **Bucketing** — groups values into ranges (e.g. salary 60k-75k)
+  - **Redaction** — completely removes the sensitive field
+- **Addresses re-identification risk** — combination of seemingly harmless fields can still identify a person
+
+### VPC Service Controls
+
+- Creates a security perimeter around GCP resources
+- Prevents sensitive data from leaving the perimeter even if attacker has valid credentials
+- Ideal for highly regulated data like EHR — ensures data cannot leave the defined boundary
+
+### Access Control
+
+#### Context-Aware Access
+
+- Goes beyond identity to verify contextual attributes before granting access:
+  - **Device identity** — is it a registered corporate device?
+  - **OS version** — is it up to date and patched?
+  - **Location** — is the user within an approved location?
+  - **Network** — is the request coming from an approved IP address?
+  - **Device security** — screen lock, storage encryption
+- **Implements zero trust security** — never trust, always verify
+
+#### Identity-Aware Proxy (IAP)
+
+- A fully managed GCP service that sits as a proxy between the user and the application
+- Verifies identity and IAM policies on every request before forwarding to the application
+- Advantages over VPN:
+  - Access granted per application, not entire network — least privilege
+  - Identity verified on every request, not just at connection time
+  - No VPN client needed — works over HTTPS
+  - Integrates directly with GCP IAM
+
+### Context-Aware Access + IAP — Zero Trust Model
+
+  - IAP answers: who are you? — identity and IAM verification
+  - Context-Aware Access answers: are your circumstances acceptable? — device, location, network verification
+  - Together they ensure that even a valid user with valid credentials is denied access if contextual conditions are not met
