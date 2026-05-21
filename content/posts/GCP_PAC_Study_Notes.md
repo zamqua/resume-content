@@ -101,7 +101,7 @@ GCP offers Load Balancers at two layers of the network stack:
 
 ### Kubernetes Architecture
 
-![alt text](image.png)
+![alt text](/post/image.png)
 
 - Control Plane manages the cluster:
   - API Server — gateway between users/tools (gcloud, console) and the cluster
@@ -189,7 +189,7 @@ The key billing distinction is that in Standard mode you pay for nodes whether y
 
 ## GCP Data Security
 
-![alt text](image-1.png)
+![alt text](/post/image-1.png)
 
 ### Encryption at Rest
 
