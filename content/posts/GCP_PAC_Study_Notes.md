@@ -265,3 +265,122 @@ The key billing distinction is that in Standard mode you pay for nodes whether y
   - IAP answers: who are you? — identity and IAM verification
   - Context-Aware Access answers: are your circumstances acceptable? — device, location, network verification
   - Together they ensure that even a valid user with valid credentials is denied access if contextual conditions are not met
+
+## Google Cloud AI Products
+
+### The 4-Layer AI Framework
+
+Google organizes its AI offerings into 4 layers, ordered from **least to most effort**, where more effort also gives **more control**.
+
+#### Layer 1 — Pre-built APIs
+**Effort**: Lowest | **Control**: Lowest
+
+- Ready-to-use, pre-trained models accessible via REST API
+- No training data, no ML expertise required
+- Google has already trained the model — you just call the API
+
+**Services include:**
+- **Vision AI** — image labeling, object detection, OCR
+- **Video Intelligence API** — recognizes objects, scenes, and actions in existing video (analysis only, not generation)
+- **Speech-to-Text** — audio transcription
+- **Text-to-Speech** — convert text to spoken audio
+- **Translation API** — language translation
+- **Document AI** — structured data extraction from forms and invoices
+- **Natural Language API** — sentiment analysis, entity detection
+
+**Limitation:** Only works for use cases Google has already trained models for (common, well-known domains).
+
+---
+
+#### Layer 2 — BigQuery ML
+**Effort**: Low-Medium | **Control**: Medium-Low
+
+- Train ML models using **SQL** directly where your data lives in BigQuery
+- No data movement, no Python or ML coding required
+- Target user: **data analysts** familiar with SQL
+- Uses extended SQL commands like `CREATE MODEL` and `ML.PREDICT`
+
+**Best for:** Users who already have structured data in BigQuery and want to build ML models without learning Python or ML frameworks.
+
+---
+
+#### Layer 3 — AutoML (Vertex AI)
+**Effort**: Medium | **Control**: Medium
+
+- User brings **labeled training data**
+- Google handles **model architecture, hyperparameter tuning, and training**
+- No deep ML expertise required — Google abstracts the hard ML engineering
+
+**Services include:**
+- AutoML Vision
+- AutoML Video
+- AutoML Text
+- AutoML Tables
+
+**Key concept — Hyperparameters:** Configuration settings that control *how* a model is trained (e.g. learning rate, number of iterations, model complexity). Google manages these automatically in AutoML.
+
+**Best for:** Use cases where pre-built APIs don't work — e.g. new undiscovered species, aboriginal languages, proprietary products not on the internet.
+
+---
+
+#### Layer 4 — Vertex AI Custom Training
+**Effort**: Highest | **Control**: Highest
+
+- User writes **their own training code** using frameworks like TensorFlow, PyTorch, scikit-learn, etc.
+- User is responsible for **model architecture, hyperparameter tuning, and fine-tuning**
+- Google provides only **managed infrastructure and tools**
+- Requires deep ML and domain expertise
+
+**Best for:** Data scientists and ML engineers who need full control over the training process for highly specialized requirements.
+
+---
+
+### Vertex AI Model Garden & Foundation Models
+
+A newer Google offering focused on **Generative AI** — adds a new dimension beyond the 4 layers.
+
+#### What it provides:
+- Access to **Google's foundation models:**
+  - **Gemini** — general purpose LLM (chat, reasoning, multimodal)
+  - **Imagen** — text-to-image generation
+  - **Chirp** — audio-to-text transcription
+- Access to **open source models** hosted and managed by Google:
+  - Llama, Mistral, and others
+
+#### Key concepts:
+
+**Foundation Models vs Pre-built APIs:**
+- Pre-built APIs are task-specific services (vision, translation, etc.)
+- Foundation models are large general-purpose models for generative AI use cases
+
+**Fine-tuning vs AutoML:**
+| | Fine-tuning (Model Garden) | AutoML (Layer 3) |
+|---|---|---|
+| Starting point | Pre-trained foundation model (e.g. Gemini) | No pre-existing model for the use case |
+| Data needed | Less labeled data needed | More labeled data required |
+| Time to market | Faster | Slower |
+| Best for | Extending what Gemini already knows | Completely new use cases |
+
+**Why open source models in Model Garden?**
+- Without Model Garden, users would need to download, host, and manage models themselves (on a laptop or VM)
+- Google provides: managed infrastructure, scalability, security, and a single unified platform
+- Users get flexibility to choose Google or open source models in one place
+
+#### Example use cases:
+- **Gemini** → general purpose chatbot for a website
+- **Chirp** → audio transcription for restaurant orders
+- **Imagen** → generating product images or book covers
+- **Llama/Mistral** → open source alternatives hosted on Google infrastructure
+
+---
+
+### Quick Reference: Which Layer to Use?
+
+| Scenario | Layer |
+|---|---|
+| Analyze images, detect objects, translate text | Layer 1 — Pre-built APIs |
+| Analyze video content (scenes, objects) | Layer 1 — Video Intelligence API |
+| Have data in BigQuery, comfortable with SQL | Layer 2 — BigQuery ML |
+| Have unique labeled data, minimal coding preferred | Layer 3 — AutoML |
+| Need full control, write own training code | Layer 4 — Vertex AI Custom Training |
+| Generative AI, extend existing foundation models | Vertex AI Model Garden |
