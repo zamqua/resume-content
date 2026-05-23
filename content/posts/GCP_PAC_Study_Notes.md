@@ -436,3 +436,25 @@ We also clarified that the algorithm and the trained model are different things 
 
 - Secret Manager secures API keys and database credentials used by ML workloads, avoiding hardcoded credentials in code
 - Workload Identity Federation secures CI/CD deployment pipelines by eliminating long-lived service account key files, replacing them with short-lived tokens exchanged via JWT — preventing accidental credential exposure in repositories like GitHub
+
+---
+
+#### Securing Prediction Traffic
+
+- Cloud Armor — protects model endpoints at the network level against DDoS attacks, bot traffic, malicious IPs, and common web application attacks (SQL injection, cross-site scripting). It is the first line of defense before any request reaches your model.
+
+
+---
+
+#### Securing the Model — Additional Layer
+
+- Model Armor — a fully managed GCP service that acts as an AI-specific firewall, screening both incoming prompts and outgoing model responses. It protects against:
+  - Prompt injection — attackers crafting malicious inputs to manipulate model behavior
+  - Jailbreaking — attempts to bypass the model's safety guidelines
+  - Sensitive data leakage — preventing the model from revealing PII or proprietary information in its responses
+  - Harmful content — filtering hate speech, harassment, and dangerous topics
+  - Malicious URLs — detecting harmful links embedded in prompts or responses
+
+
+
+Together, Cloud Armor and Model Armor implement a defense in depth strategy — Cloud Armor at the network level and Model Armor at the AI application level, each catching what the other might miss.
