@@ -384,3 +384,55 @@ A newer Google offering focused on **Generative AI** — adds a new dimension be
 | Have unique labeled data, minimal coding preferred | Layer 3 — AutoML |
 | Need full control, write own training code | Layer 4 — Vertex AI Custom Training |
 | Generative AI, extend existing foundation models | Vertex AI Model Garden |
+
+### Securing AI/ML Model
+
+#### AI/ML Workload Components
+
+Before securing anything, we established the four key components of an AI/ML workload:
+
+1. Training data — labeled data to teach the model plus validation data to verify accuracy
+2. Model — the algorithm (blueprint) plus learned weights (probability distributions)
+3. Configuration — hyperparameters (how training works) plus guardrails (constraints and boundaries)
+4. Prediction traffic — real-time inference data (input) and predictions (output)
+
+We also clarified that the algorithm and the trained model are different things — the algorithm is the recipe, and the trained model is the finished product after training.
+
+---
+
+#### Securing Training Data
+
+- GCP encrypts data at rest and in transit by default
+- CMEK (Customer Managed Encryption Keys) via Cloud KMS for user managed keys
+- CSEK (Customer Supplied Encryption Keys) for users who supply their own key bits per request
+- Cloud HSM for tamper resistant hardware based key management
+- Sensitive Data Protection for anonymizing sensitive data through redaction, masking, bucketing, tokenization
+- Artifact Registry for verifying integrity of libraries and container images through code signing
+- Data poisoning defense through IAM access restrictions, Cloud Storage object versioning, hash verification, and Cloud Audit Logs
+
+---
+
+#### Securing the Model
+
+- IAM with least privilege principle controls who can access the model
+- Service accounts represent ML workloads (not humans) when accessing GCP resources
+- Identity-Aware Proxy (IAP) protects HTTP based model endpoints
+- VPC Service Controls creates a security perimeter preventing data exfiltration — complementing IAM by controlling where data can go, not just who can access it
+- Context-Aware Access adds an additional layer considering device state, OS version, location, IP address, and network trustworthiness
+
+---
+
+#### Securing Configuration
+
+- All access control strategies above apply equally to configuration data
+- Cloud Audit Logs provides immutable audit trails tracking who changed what and when
+- Three types of audit logs: Admin Activity (always on, cannot be disabled), Data Access, and System Event logs
+- Audit logs can be configured at organization, folder, or project level — organization level recommended for full visibility
+- Accessible via IAM & Admin in the GCP console
+
+---
+
+#### Securing the Training Pipeline
+
+- Secret Manager secures API keys and database credentials used by ML workloads, avoiding hardcoded credentials in code
+- Workload Identity Federation secures CI/CD deployment pipelines by eliminating long-lived service account key files, replacing them with short-lived tokens exchanged via JWT — preventing accidental credential exposure in repositories like GitHub
