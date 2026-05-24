@@ -458,3 +458,75 @@ We also clarified that the algorithm and the trained model are different things 
 
 
 Together, Cloud Armor and Model Armor implement a defense in depth strategy — Cloud Armor at the network level and Model Armor at the AI application level, each catching what the other might miss.
+
+### GDPR & Data Residency on GCP
+
+GDPR Scope — The Key Principle: GDPR Follows the Subject
+
+#### GDPR applies based on the location of the data subject, not citizenship
+- EU residents (any nationality) → GDPR applies
+- Non-EU citizen physically in EU when data collected → GDPR applies
+- Any company worldwide processing EU residents' data → GDPR applies
+- EU citizen living outside EU → GDPR does NOT automatically apply
+
+KnightMotives — a fictional company scenario used in study material to provide real world GDPR context.
+
+#### Key GDPR Principles relevant to GCP:
+- Data Sovereignty — data is subject to laws of the region where it is stored
+- Right to Erasure — users can request their data to be deleted
+- Data Minimization — collect only what is necessary
+- Standard Contractual Clauses (SCCs) — legal mechanism allowing data transfer outside EU, provided GDPR protections are contractually guaranteed by the receiving party
+
+---
+
+#### GCP Data Residency Enforcement
+Organization Policy — Resource Location Restriction
+
+- Uses constraint constraints/gcp.resourceLocations
+- Restricts where GCP resources can be created and stored — not about data transfer
+- Applied at organization, folder, or project level
+- Overrides individual user permissions — even project owners cannot violate it
+- Applies to Cloud SQL, BigQuery, Cloud Storage, Bigtable and many other services
+- **Important**: Not enforced retroactively — existing resources must be deleted and recreated to comply
+- Example for Lucy: in:eu-locations ensures no resource is created outside EU
+
+#### VPC Service Controls
+
+- Creates a security perimeter around GCP resources
+- Prevents data from leaving the perimeter even by authorized users
+- Granularity is at resource level (project, service, resource) — NOT at column or row level
+- Resources inside perimeter communicate freely; traffic crossing perimeter is blocked by default
+- Lucy can put patient data resources inside the perimeter and marketing data resources outside
+- For column level restrictions, use BigQuery column level security or Sensitive Data Protection instead
+
+#### Distinction between the two:
+
+**Organization Policy** — controls where data is stored
+**VPC Service Controls** — controls where data can go
+
+
+#### Lucy's Clinic — GDPR Compliant Architecture on GCP
+Lucy runs a holistic clinic in Paris with patients worldwide. Tom is a patient in Dallas, Texas.
+
+**Data Residency**:
+
+- Organization Policy restricts all resources to in:eu-locations
+- VPC Service Controls prevents patient data from leaving the EU perimeter
+- Patient data (Cloud SQL/Cloud Storage) stays physically in EU at all times
+
+**Authentication & Access Control**:
+
+- Cloud Identity — Tom logs in using federated identity (Google, corporate IdP)
+- IAM with least privilege — Tom can only access his own records as a principal
+- 2-factor verification — additional authentication layer for sensitive medical data
+- Context-Aware Access — considers Tom's device state, IP, and location before granting access
+
+**Solving the Latency Problem — Two-tier Architecture**:
+
+- Static content (website, images, stylesheets, JavaScript) → cached globally via Cloud CDN → Tom gets fast website loading from a Dallas edge node
+- Private patient data → single API call to EU region → retrieved directly from EU on demand
+- This balances GDPR compliance with acceptable user experience for global patients
+
+**Legal Mechanism for Cross-border Data Transfer**:
+
+- Standard Contractual Clauses (SCCs) — alternative to strict data residency, allows data to leave EU provided GDPR protections are contractually guaranteed by the receiving party
