@@ -530,3 +530,336 @@ Lucy runs a holistic clinic in Paris with patients worldwide. Tom is a patient i
 **Legal Mechanism for Cross-border Data Transfer**:
 
 - Standard Contractual Clauses (SCCs) — alternative to strict data residency, allows data to leave EU provided GDPR protections are contractually guaranteed by the receiving party
+
+### Site Reliability Engineering (SRE)
+
+#### DevOps vs SRE
+
+- DevOps is a broad culture and philosophy that breaks down the wall between development and operations teams, encouraging collaboration and continuous delivery. It does not prescribe specific rules or metrics.
+- SRE is Google's opinionated and structured implementation of DevOps — it takes the DevOps philosophy and adds specific metrics, rules, practices, and roles.
+- In Google's own words: "SRE is what happens when you ask a software engineer to design an operations team."
+
+
+#### Who is an SRE?
+
+- SREs are software engineers who specialize in reliability
+- They have strong coding skills, infrastructure knowledge, and systems thinking
+- They are not pure operations people — they can read and understand application code
+- Google's rule: SREs spend 50% of their time on operations (incidents, on-call, deployments) and 50% on engineering work (automation, tooling, reliability improvements)
+- The 50% is not a fixed allocation — it is a guardrail. If operations work exceeds 50%, it is a signal that the system is too unreliable and the development team needs to fix it
+
+#### Core SRE Concepts
+
+##### SLI — Service Level Indicator
+
+The actual measurement of reliability
+Examples: uptime percentage, response time, error rate
+
+##### SLO — Service Level Objective
+
+- The internal target the team agrees to
+- Example: 99.9% uptime annually
+- Slightly stricter than the SLA
+
+##### SLA — Service Level Agreement
+
+- The external contractual commitment made to customers
+- Usually slightly less strict than the SLO
+- Breach of SLA has contractual and financial consequences
+
+##### Error Budget
+
+- Derived directly from the SLO — the amount of unreliability the team is allowed to "spend"
+- Example: 99.9% SLO = 0.1% downtime = approximately 8.7 hours of downtime per year
+- Acts as a brake — forcing the development team to prioritize reliability over new features when the budget is exhausted
+- Creates a shared incentive between development and operations
+- When error budget is exhausted: freeze new feature deployments and focus on reliability improvements
+
+##### Toil Reduction
+
+- Toil = repetitive, manual, operational work that does not add lasting value
+- Examples: manual deployments, responding to the same alerts repeatedly, manually scaling infrastructure
+- SREs are expected to automate toil using their engineering skills
+- Once automated, toil stays reduced with minimal maintenance
+- Toil reduction frees up capacity for proactive reliability engineering
+
+---
+
+#### Reliability Testing Practices
+
+##### Chaos Engineering
+
+- Deliberately injecting failures (killing servers, dropping network connections) in a controlled and planned manner
+- Goal: discover weaknesses before customers do
+- Must be limited to specific zones with fallback mechanisms
+
+- DiRT (Disaster Recovery Testing)
+
+- Google's practice of simulating entire datacenter failures, network outages, or data corruption
+- Verifies that recovery procedures actually work
+
+##### Game Days
+
+- Simulated major incident exercises where the entire team practices their response
+
+##### Load Testing
+
+- Testing system behavior under high traffic to find the breaking point before customers experience it
+
+
+##### Monitoring & Alerting
+- Cloud Monitoring — continuous visibility into system health via dashboards
+- Cloud Logging — detailed logs for post-incident investigation
+- Alerts — should be:
+  - Strategic and meaningful — only fire when an SLO is at risk
+  - Actionable — if the on-call engineer cannot do anything about it, it should not be an alert
+  - Avoid alert fatigue — too many alerts leads to engineers ignoring them, including critical ones
+
+- On-call — SRE engineers rotate on-call responsibility, responding to critical alerts via email, phone, or pager
+
+---
+
+#### Blameless Post-mortems
+
+- Conducted after every significant production incident
+- Focus is on learning, not blame — blaming individuals causes people to defend themselves rather than solve the real issue
+- A formal document is produced capturing:
+  - Incident timeline
+  - Root cause analysis
+  - Impact (users affected, duration, SLO impact)
+  - Action items to prevent recurrence
+  - Lessons learned
+- Google shares post-mortems widely across engineering teams to build a culture of learning
+
+### GCP CI/CD Toolchain
+
+#### What is CI/CD?
+
+- **CI (Continuous Integration)** — automatically builds and tests code every time a developer pushes a commit. Goal: catch issues early before they reach production
+- **CD (Continuous Delivery)** — automatically deploys code that passed CI to a target environment. Goal: get validated code to production quickly and reliably
+- **CI always precedes CD** — if CI fails, CD does not trigger
+- Some organizations require manual approval gates before promoting to production
+
+---
+
+#### GCP CI/CD Toolchain Components
+
+1. Cloud Source Repositories
+
+- GCP's private, secure Git repository hosting service
+- Alternative to GitHub, GitLab, or Bitbucket
+- Keeps code within GCP for security and compliance reasons
+- Cloud Build can also integrate with external repositories like GitHub, GitLab, and Bitbucket — GCP is not limited to Cloud Source Repositories
+
+2. Cloud Build
+
+- GCP's managed CI service — equivalent to GitHub Actions
+- Triggered by code commits, pull requests, or tag creation via Cloud Build Triggers
+- Configured using cloudbuild.yaml file stored in the repository
+- Each build step runs inside a container ensuring:
+  - Consistent environment
+  - Repeatable results — eliminates "works on my machine" problem
+- Responsibilities:
+  - Builds source code
+  - Runs unit tests
+  - Runs security scanning (SAST)
+  - Runs vulnerability scanning (SCA)
+  - Signs container image via Binary Authorization
+  - Pushes signed image to Artifact Registry
+  - Triggers Cloud Deploy as the last step in cloudbuild.yaml
+
+3. Artifact Registry
+
+- Stores signed container images after successful Cloud Build
+- Automatically scans container images for known vulnerabilities — images can become vulnerable after being built as new CVEs are discovered
+- Acts as the single source of truth for deployable artifacts
+- Supports code signing — publisher signs artifact with private key, downloader verifies with public key
+
+4. Cloud Deploy
+
+- GCP's managed CD service
+- Manages progressive delivery through environments: dev → staging → production
+- Deploys to GKE, Cloud Run, and GCE
+- For static files (GCS), pipeline configuration defines how files are copied to buckets
+- Never rebuilds — promotes the same container image that was tested in staging to production
+- Supports manual approval gates between environments
+- Supports rollback to previous known good artifact stored in Artifact Registry
+
+---
+
+#### Security in the CI/CD Pipeline
+
+##### Binary Authorization
+
+- GCP managed policy enforcement service
+- Sits between Artifact Registry and deployment target (GKE, Cloud Run)
+- Ensures only signed and verified container images are deployed
+- Works with Cloud KMS for key management
+- Attestor — a trusted authority that vouches a container image has passed all required checks
+
+##### Security scanning order (before signing):
+
+- SAST (Static Application Security Testing) — scans source code for vulnerabilities during Cloud Build
+- SCA (Software Composition Analysis) — scans container image for vulnerable dependencies after build
+- Container signing — only after both checks pass
+- Binary Authorization verification — verifies signature before deployment
+
+
+```markdown
+Code push → Cloud Build triggered
+     ↓
+Build code → Run tests → SAST scan → SCA scan
+     ↓
+Sign container image (Cloud KMS)
+     ↓
+Push to Artifact Registry
+     ↓
+Cloud Build triggers Cloud Deploy (last cloudbuild.yaml step)
+     ↓
+Binary Authorization verifies attestation
+     ↓
+Cloud Deploy promotes through dev → staging → production
+```
+---
+
+#### Spinnaker
+
+- Open source, multi-cloud CD platform created at Netflix
+- Still actively used in 2025, especially in multi-cloud organizations
+- Integrates with Cloud Build as a CI system
+- Key distinction from Cloud Deploy:
+  - Cloud Deploy — GCP native, simpler, best within GCP ecosystem
+  - Spinnaker — multi-cloud, more complex, better for organizations deploying across AWS, GCP, and Azure from a single platform
+
+### GCP Observability
+
+#### Why Observability Matters
+
+##### Monolith vs Microservices observability challenge:
+
+- **Monolith** — one log, one CPU graph, one memory graph — easy to observe but hard to change
+- **Microservices** — multiple logs, multiple servers, multiple metrics — hard to observe but easy to change independently
+- The core challenge: how do you trace a single transaction across multiple microservices?
+
+---
+
+#### The Three Pillars of Observability
+
+1. **Logs — Cloud Logging**
+
+- Centralized log aggregation from all microservices into a single view
+- Searchable by Trace ID to reconstruct full transaction journey
+- Acts as the central nervous system of GCP observability — other services read from it
+- Supports log filter queries to find specific log entries
+- Log-based metrics — save a log filter query and GCP runs it continuously in the background, generating a custom metric in Cloud Monitoring. No code required — just a filter query saved through the GCP console UI
+- Example: filter logs for "retry_attempt" in refund service → creates retry counter metric automatically
+
+2. **Traces — Cloud Trace**
+
+- Solves the distributed transaction tracing problem in microservices
+- Every request gets a unique Trace ID generated at entry point and passed through every microservice
+- Each microservice operation is a Span — containing start time, end time, and duration
+- A complete Trace = Trace ID + multiple Spans showing the full journey
+
+Example trace for Tom's booking:
+```markdown
+Trace ID: ABC123
+  ├── Span 1: API Gateway (2ms)
+  ├── Span 2: Repricing Service (250ms) ← slow!
+  │     ├── Span 3: Offer Store Service (200ms) ← bottleneck!
+  │     └── Span 4: Pricing Service (45ms)
+  └── Span 5: Tax Server (3ms)
+  ```
+
+**Two modes of operation:**
+
+- Automatic sampling — continuously traces a small representative percentage of requests (e.g. 1-5%) in background without high cost
+- On-demand tracing — for specific troubleshooting, find a specific Trace ID and examine the full detailed trace
+
+3. **Metrics — Cloud Monitoring**
+
+- Automatically collects metrics for GCP managed services
+- Custom metrics exported via OpenTelemetry or Cloud Monitoring API
+- Supports MQL (Monitoring Query Language) for custom dashboards
+- Connects to log-based metrics automatically
+- Supports SLO based alerts tied directly to error budget burn rate
+
+**RED Method** — for monitoring microservices from user perspective:
+
+R — Rate — requests per second
+E — Errors — failed requests per second
+D — Duration — response time per request
+
+**USE Method** — for monitoring infrastructure:
+
+U — Utilization — CPU, memory usage
+S — Saturation — how overloaded the resource is
+E — Errors — hardware or system errors
+
+
+##### Additional Observability Tools
+**Cloud Error Reporting**
+
+- Works automatically in the background reading from Cloud Logging
+- Groups similar errors together — 1000 occurrences of same error appear as one grouped entry
+- Shows error frequency and trends — is this error increasing or decreasing?
+- Notifies teams when a new error type is detected for the first time
+- Links errors to specific code locations
+- Saves you from manually searching logs — automatically surfaces errors and their frequency
+
+#### Cloud Profiler
+
+- Performance profiling tool for production environments — not a debugger
+- Integrates a lightweight agent library into your application
+- Runs in its own background thread — does not block application threads
+- Uses statistical sampling of call stacks at regular intervals (e.g. every 10ms)
+- Buffers collected samples and sends to Cloud Profiler API over HTTPS periodically
+- Collects:
+  - CPU profiling — which functions consume most CPU time
+  - Memory profiling — which functions allocate most memory
+  - Heap profiling — memory allocation and retention patterns
+- Visualizes data as flame graphs showing CPU time distribution across functions
+- Typical overhead: less than 1% CPU impact
+- Key advantage: always on, non-invasive, historical — compare profiles over time
+
+#### OpenTelemetry
+
+- Open source, vendor neutral instrumentation standard fully supported by GCP
+- Provides libraries for Java, Python, Go, Node.js, C++ and more
+- Automatically handles Trace ID generation, Span timing, and metrics collection
+- Replaces custom logger libraries with standardized instrumentation
+- Data flows automatically to Cloud Trace, Cloud Logging, and Cloud Monitoring
+
+#### How the Four Pillars Work Together
+
+Real world example — refund service retry issue:
+
+```markdown
+Refund service logs "retry_attempt" entries
+     ↓
+Cloud Logging receives and stores log entries
+     ↓
+Log-based metric increments retry counter
+     ↓
+Cloud Monitoring tracks retry rate over time
+     ↓
+Alert fires when retry rate exceeds SLO threshold
+     ↓
+SRE on-call investigates
+     ↓
+Cloud Trace finds slow span in legacy refund service
+     ↓
+Cloud Logging finds exact log entries via Trace ID
+     ↓
+Cloud Profiler shows which function is consuming most CPU
+     ↓
+Cloud Error Reporting shows error frequency and code location
+```
+
+#### Connecting Observability to SRE
+
+- RED Method metrics map directly to SLIs (error rate, latency, throughput)
+- Cloud Monitoring alerts fire when SLO is at risk
+- Error budget burn rate alerts trigger when reliability degrades too fast
+- Log-based metrics (like retry counters) provide custom SLIs beyond standard metrics
+- Blameless post-mortems use Cloud Logging, Cloud Trace, and Cloud Error Reporting to reconstruct incident timeline and root cause
