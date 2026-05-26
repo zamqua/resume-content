@@ -1,13 +1,13 @@
-+++
-title = "GCP PAC Certification Preperation Notes"
-author = ["Mohammed Azam"]
-date = 2026-05-26T11:05:00-05:00
-tags = ["certifications", "gcppac", "notes"]
-draft = false
+---
+title: "GCP PAC Certification Preperation Notes"
+author: ["Mohammed Azam"]
+date: 2026-05-26T11:05:00-05:00
+tags: ["certifications", "gcppac", "notes"]
+draft: false
 categories: ["Tutorial"]
 description: "Prep notes on GCP PAC certifcation"
 showToc: true
-+++
+---
 
 ## Designing and planning a cloud solution architecture {#designing-and-planning-a-cloud-solution-architecture}
 
